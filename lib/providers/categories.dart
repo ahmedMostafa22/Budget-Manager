@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 
 class CategoriesProvider with ChangeNotifier {
   List<Category> categories = [];
-  getCategories() {}
-  addCategory(Category category) {}
-  editCategory(Category category) {}
+  getCategories() {}//done
+  addCategory(Category category) {} //done
+  editCategory(Category category) {}//done
 }

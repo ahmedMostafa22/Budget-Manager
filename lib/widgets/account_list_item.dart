@@ -28,7 +28,7 @@ class AccountItem extends StatelessWidget {
               ),
               Text(
                 '\$${account.balance.toString()}',
-                style: TextStyle(color: Color(0xFF00C853)),
+                style: TextStyle(color: Constants.appGreen),
               )
             ],
           ),

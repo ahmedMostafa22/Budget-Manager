@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class Constants {
   static final Color appBlue = Colors.blue;
-  static final appGreen = Color(0xFF00C853);
+  static final appGreen = Colors.green[700];
   static final appLigthGreen = Colors.green[100];
   static final appDarkRed = Colors.red[800];
   static final appBlack = Colors.black;
