@@ -1,76 +1,61 @@
-import 'package:budget_manager/models/account.dart';
-import 'package:budget_manager/models/category.dart';
-import 'package:budget_manager/utils/AccountDatabase.dart';
-
+import 'package:budget_manager/providers/accounts.dart';
 import 'package:budget_manager/widgets/account_list_item.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../constants.dart';
 import 'add_account.dart';
 
-class Accounts extends StatelessWidget {
+class Accounts extends StatefulWidget {
   @override
-  // List<Account> accounts = [];
-  // List<Category> categories = [];
-  // final DatabaseHelper _databaseHelper = DatabaseHelper();
-  // Account currentAccount;
-  // Category currentCategory;
+  _AccountsState createState() => _AccountsState();
+}
+
+class _AccountsState extends State<Accounts> {
+  var _future;
+  @override
+  void initState() {
+    super.initState();
+    _future =
+        Provider.of<AccountsProvider>(context, listen: false).fetchAccounts();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    AccountsProvider accountsProvider = Provider.of<AccountsProvider>(context);
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(color: Constants.appBlue),
-        backgroundColor: Constants.appWhite,
-        title: Text(
-          'Accounts',
-          style: TextStyle(
-            color: Constants.appBlue,
-          ),
-        ),
-        actions: [
-          InkWell(
-            onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => AddAccount()));
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(Icons.add),
+        appBar: AppBar(
+          iconTheme: IconThemeData(color: Constants.appBlue),
+          backgroundColor: Constants.appWhite,
+          title: Text(
+            'Accounts',
+            style: TextStyle(
+              color: Constants.appBlue,
             ),
-          )
-        ],
-      ),
-      body: ListView(
-        children: [
-          // print("Wallet");
-          // currentCategory = Category(
-          //     amount: 555,
-          //     colorIndex: 1,
-          //     iconIndex: 1,
-          //     name: "Apple",
-          //     type: "Fruit");
-
-          // currentAccount = Account(
-          //     name: "Visa", balance: 500, colorIndex: 2, iconIndex: 4);
-
-          //     categories = await _databaseHelper.getAllCategories();
-          //     print(categories[0].amount);
-          //   },
-          AccountItem(
-            account: Account(
-                name: 'Wallet', balance: 4000, iconIndex: 3, colorIndex: 2),
           ),
-
-          // List<Account> myAccount = await _databaseHelper.getAllAccounts();
-
-          // accounts = myAccount;
-
-          // print(myAccount.length);
-
-          AccountItem(
-            account: Account(
-                name: 'Visa', balance: 3000, iconIndex: 5, colorIndex: 3),
-          ),
-        ],
-      ),
-    );
+          actions: [
+            InkWell(
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => AddAccount(screenUseCase: 'Add',)));
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(Icons.add),
+              ),
+            )
+          ],
+        ),
+        body: FutureBuilder(
+            future: _future,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting ||
+                  accountsProvider.accounts.isEmpty)
+                return Center(child: CircularProgressIndicator());
+              else
+                return ListView.builder(
+                    itemCount: accountsProvider.accounts.length,
+                    itemBuilder: (context, i) =>
+                        AccountItem(account: accountsProvider.accounts[i]));
+            }));
   }
 }

@@ -1,4 +1,8 @@
+import 'package:budget_manager/models/category.dart';
+import 'package:budget_manager/providers/categories.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 
 import '../constants.dart';
 
@@ -11,7 +15,7 @@ class _AddCategoryState extends State<AddCategory> {
   final _form = new GlobalKey<FormState>();
   var _controllerName = TextEditingController();
   int colorIndex = 1, iconIndex = 1;
-  String categoryType='Expense';
+  String categoryType = 'Expense';
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -23,8 +27,24 @@ class _AddCategoryState extends State<AddCategory> {
         backgroundColor: Constants.appWhite,
         actions: [
           InkWell(
-            onTap: () {
-              _saveForm();
+            onTap: () async {
+              if (_saveForm()) {
+                await Provider.of<CategoriesProvider>(context, listen: false)
+                    .addCategory(Category(
+                        iconIndex: iconIndex,
+                        colorIndex: colorIndex,
+                        name: _controllerName.text.toString(),
+                        amount: 0,
+                        type: categoryType));
+                Fluttertoast.showToast(
+                    msg: "Category Created Successfully !",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.CENTER,
+                    backgroundColor: Colors.green,
+                    textColor: Colors.white,
+                    fontSize: 16.0);
+                Navigator.of(context).pop();
+              }
             },
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -246,9 +266,11 @@ class _AddCategoryState extends State<AddCategory> {
     );
   }
 
-  void _saveForm() {
+  bool _saveForm() {
     if (_form.currentState.validate()) {
       _form.currentState.save();
+      return true;
     }
+    return false;
   }
 }

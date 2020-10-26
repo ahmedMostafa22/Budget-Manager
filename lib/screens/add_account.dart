@@ -1,8 +1,20 @@
 import 'package:budget_manager/constants.dart';
+import 'package:budget_manager/models/account.dart';
+import 'package:budget_manager/providers/accounts.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 
 class AddAccount extends StatefulWidget {
+  final String screenUseCase;
+  final Account account;
+
+  const AddAccount({
+    Key key,
+    @required this.screenUseCase,
+    this.account,
+  }) : super(key: key);
   @override
   _AddAccountState createState() => _AddAccountState();
 }
@@ -13,6 +25,18 @@ class _AddAccountState extends State<AddAccount> {
   var _controllerName = TextEditingController();
   var _controllerBalance = TextEditingController();
   int colorIndex = 1, iconIndex = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.screenUseCase == 'Edit') {
+      _controllerBalance.text = widget.account.balance.toString();
+      _controllerName.text = widget.account.name.toString();
+      colorIndex = widget.account.colorIndex;
+      iconIndex = widget.account.iconIndex;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -24,8 +48,34 @@ class _AddAccountState extends State<AddAccount> {
         backgroundColor: Constants.appWhite,
         actions: [
           InkWell(
-            onTap: () {
-              _saveForm();
+            onTap: () async {
+              if (_saveForm()) {
+                Account account = Account(
+                    id: widget.screenUseCase == 'Add'
+                        ? null
+                        : widget.account.id,
+                    name: _controllerName.text.toString(),
+                    balance: double.parse(_controllerBalance.text.toString()),
+                    colorIndex: colorIndex,
+                    iconIndex: iconIndex);
+                if (widget.screenUseCase == 'Add')
+                  await Provider.of<AccountsProvider>(context, listen: false)
+                      .addAccount(account);
+                else {
+                  await Provider.of<AccountsProvider>(context, listen: false)
+                      .editAccount(account);
+                }
+                Fluttertoast.showToast(
+                    msg: widget.screenUseCase == 'Add'
+                        ? "Account Created Successfully !"
+                        : "Account Edited Successfully !",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.CENTER,
+                    backgroundColor: Colors.green,
+                    textColor: Colors.white,
+                    fontSize: 16.0);
+                Navigator.of(context).pop();
+              }
             },
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -37,7 +87,7 @@ class _AddAccountState extends State<AddAccount> {
           )
         ],
         title: Text(
-          'New account',
+          widget.screenUseCase == 'Add' ? 'New account' : 'Edit account',
           style: TextStyle(
             color: Constants.appBlue,
           ),
@@ -79,8 +129,7 @@ class _AddAccountState extends State<AddAccount> {
                 validator: (val) {
                   if (val.isEmpty ||
                       double.tryParse(val) == null ||
-                      double.parse(val) < 0.0 ||
-                      double.parse(val) > 100)
+                      double.parse(val) < 0.0)
                     return "Field content is not valid";
                   return null;
                 },
@@ -236,9 +285,11 @@ class _AddAccountState extends State<AddAccount> {
     );
   }
 
-  void _saveForm() {
+  bool _saveForm() {
     if (_form.currentState.validate()) {
       _form.currentState.save();
+      return true;
     }
+    return false;
   }
 }
